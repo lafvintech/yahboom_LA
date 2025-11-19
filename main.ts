@@ -980,28 +980,45 @@ namespace mbit_小车类 {
     //% blockGap=10
     //% color="#006400"
     //% name.fieldEditor="gridpicker" name.fieldOptions.columns=12
-
-    //% blockId=mbit_Line_Sensor block="Line_Sensor|direct %direct|value %value"
-    //% weight=94
-    //% blockGap=10
-    //% color="#006400"
-    //% name.fieldEditor="gridpicker" name.fieldOptions.columns=12
-
     export function Line_Sensor(direct: enPos, value: enLineState): boolean {
-        const raw = direct === enPos.LeftState ? sample(DigitalPin.P12) : sample(DigitalPin.P13)
-        const seeWhite = raw < 450          // 阈值现场可调
-        return seeWhite === (value === enLineState.White)
 
-        /* 亮-读-灭 三合一 */
+        let temp: boolean = false;
 
+        switch (direct) {
+            case enPos.LeftState: {
+                if (pins.analogReadPin(AnalogPin.P2) < 500) {
+                    if (value == enLineState.White) {
+                        temp = true;
+                    }
+                    setPwm(7, 0, 4095);
+                }
+                else {
+                    if (value == enLineState.Black) {
+                        temp = true;
+                    }
+                    setPwm(7, 0, 0);
+                }
+                break;
+            }
 
-    function sample(p: AnalogPin): number {  // ✅ 改成 AnalogPin
-    pins.digitalWritePin(<DigitalPin>p, 1)  // ✅ 这里可以强转，因为 DigitalPin 是 AnalogPin 的子集
-    control.waitMicros(2000)
-    const val = pins.analogReadPin(p)       // ✅ 类型匹配
-    pins.digitalWritePin(<DigitalPin>p, 0)
-    return val
-}
+            case enPos.RightState: {
+                if (pins.analogReadPin(AnalogPin.P1) < 500) {
+                    if (value == enLineState.White) {
+                        temp = true;
+                    }
+                    setPwm(6, 0, 4095);
+                }
+                else {
+                    if (value == enLineState.Black) {
+                        temp = true;
+                    }
+                    setPwm(6, 0, 0);
+                }
+                break;
+            }
+        }
+        return temp;
+
     }
     //% blockId=mbit_CarCtrl block="CarCtrl|%index"
     //% weight=93
